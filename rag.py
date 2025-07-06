@@ -1,5 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+import numpy as np
 # Load chunks
 with open("vector_store/chunks.txt", "r", encoding="utf-8") as f:
     chunks = f.read().splitlines()
