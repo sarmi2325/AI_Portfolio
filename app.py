@@ -41,7 +41,6 @@ def chat():
     context_chunks = retrieve(user_msg)[:10]
     context = "\n".join(context_chunks)
 
-
     if "project" in user_msg:
         prompt = get_project_prompt(context, user_msg)
     elif "skill" in user_msg:
@@ -63,7 +62,7 @@ def ask_claude(prompt):
         "content-type": "application/json"
     }
     data = {
-        "model": "claude-3-haiku-20240307",  # or another Claude model
+        "model": "claude-3-haiku-20240307",
         "max_tokens": 1024,
         "messages": [
             {"role": "user", "content": prompt}
@@ -74,7 +73,6 @@ def ask_claude(prompt):
         if res.status_code != 200:
             print("❌ Claude API Error:", res.status_code, res.text)
             return "⚠️ Claude API error."
-        # Parse response safely
         result = res.json()
         if "content" in result and isinstance(result["content"], list) and result["content"]:
             answer = result["content"][0].get("text", "").replace("\n", " ")
@@ -87,7 +85,8 @@ def ask_claude(prompt):
         return "⚠️ Connection failed."
 
 if __name__ == "__main__":
-    app.run(debug=True, threaded=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port, debug=False)
 
 
 
