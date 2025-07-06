@@ -2,8 +2,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 
 # Load your model (must match the one used for embeddings)
-model = SentenceTransformer("all-mpnet-base-v2")
-model = model.half() 
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Load chunks and embeddings
 with open("vector_store/chunks.txt", "r", encoding="utf-8") as f:
