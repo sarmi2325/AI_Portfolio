@@ -1,4 +1,5 @@
 import psutil, os
+from sentence_transformers import SentenceTransformer
 
 def log_memory(stage=""):
     process = psutil.Process(os.getpid())
