@@ -2,8 +2,6 @@
 Flask
 requests
 python-dotenv
-sentence-transformers
-torch
-psutil
+scikit-learn
 
 
