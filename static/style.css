@@ -1,4 +1,3 @@
-
 body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
@@ -6,11 +5,17 @@ body {
   color: #f0f2f5;
   overflow-x: hidden;
 }
-.top-button.liked {
-  background: #ff3366;
-  color: #fff;
-  border-color: #ff3366;
+.top-button.right {
+  left: auto;
+  right: 20px;
 }
+#like-btn.liked {
+  background: #ff69b4; /* Hot pink */
+  color: #fff;
+  border-color: #ff69b4;
+  transition: background 0.2s, color 0.2s;
+}
+
 
 .main-area {
   display: flex;
@@ -33,8 +38,6 @@ body {
   transition: background 0.18s, color 0.18s;
   text-decoration: none;
 }
-
-
 
 .top-button:hover {
   background: #18191a;
