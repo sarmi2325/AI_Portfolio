@@ -1,18 +1,22 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
+from rank_bm25 import BM25Okapi
 import numpy as np
+
 # Load chunks
-with open("vector_store/chunks.txt", "r", encoding="utf-8") as f:
+with open("vector_store/chunk.txt", "r", encoding="utf-8") as f:
     chunks = f.read().splitlines()
 
-# Create vectorizer and embeddings
-vectorizer = TfidfVectorizer()
-embeddings = vectorizer.fit_transform(chunks)
+# Tokenize each chunk (simple whitespace split works for most English text)
+tokenized_chunks = [chunk.split() for chunk in chunks]
+
+# Initialize BM25
+bm25 = BM25Okapi(tokenized_chunks)
 
 def retrieve(query, top_k=4):
-    query_vec = vectorizer.transform([query])
-    sims = (embeddings * query_vec.T).toarray().flatten()
-    top_indices = np.argsort(sims)[-top_k:][::-1]
+    tokenized_query = query.split()
+    scores = bm25.get_scores(tokenized_query)
+    top_indices = np.argsort(scores)[-top_k:][::-1]
     return [chunks[i] for i in top_indices]
+
 
 
 
