@@ -3,5 +3,6 @@ Flask
 requests
 python-dotenv
 scikit-learn
-
+Flask-SQLAlchemy
+rank_bm25
 
