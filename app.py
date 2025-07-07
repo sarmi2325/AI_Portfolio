@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, jsonify
+from model import db, Like
 from rag import retrieve
 from system_prompts import (
     get_about_prompt,
@@ -19,6 +20,15 @@ if not CLAUDE_API_KEY:
     raise ValueError("❌ Missing Claude API Key. Set CLAUDE_API_KEY in your .env file.")
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///likes.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+    if not Like.query.first():
+        db.session.add(Like(count=0))
+        db.session.commit()
 
 def preprocess_user_input(user_msg):
     user_msg = re.sub(r'\bher\b', 'you', user_msg, flags=re.IGNORECASE)
@@ -28,7 +38,8 @@ def preprocess_user_input(user_msg):
 
 @app.route('/')
 def home():
-    return render_template("chatbot.html")
+    like = Like.query.first()
+    return render_template("chatbot.html", like_count=like.count)
 
 @app.route('/chat', methods=["POST"])
 def chat():
@@ -41,6 +52,7 @@ def chat():
     context_chunks = retrieve(user_msg)[:10]
     context = "\n".join(context_chunks)
 
+
     if "project" in user_msg:
         prompt = get_project_prompt(context, user_msg)
     elif "skill" in user_msg:
@@ -51,6 +63,7 @@ def chat():
         prompt = get_about_prompt(context, user_msg)
     else:
         prompt = context + f"\n\nUser Question: {user_msg}\n\nRespond clearly and concisely."
+   
 
     answer = ask_claude(prompt)
     return jsonify({"response": answer})
@@ -62,7 +75,7 @@ def ask_claude(prompt):
         "content-type": "application/json"
     }
     data = {
-        "model": "claude-3-haiku-20240307",
+        "model": "claude-3-haiku-20240307",  # or another Claude model
         "max_tokens": 1024,
         "messages": [
             {"role": "user", "content": prompt}
@@ -73,6 +86,7 @@ def ask_claude(prompt):
         if res.status_code != 200:
             print("❌ Claude API Error:", res.status_code, res.text)
             return "⚠️ Claude API error."
+        # Parse response safely
         result = res.json()
         if "content" in result and isinstance(result["content"], list) and result["content"]:
             answer = result["content"][0].get("text", "").replace("\n", " ")
@@ -84,7 +98,22 @@ def ask_claude(prompt):
         print("❌ Claude Exception:", e)
         return "⚠️ Connection failed."
 
+@app.route('/like', methods=['POST'])
+def like():
+    like = Like.query.first()
+    like.count += 1
+    db.session.commit()
+    return jsonify({'count': like.count})
 
+@app.route('/like_status', methods=['GET'])
+def like_status():
+    like = Like.query.first()
+    return jsonify({'count': like.count})
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True, threaded=True)
 
 
 
