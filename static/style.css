@@ -5,6 +5,8 @@ body {
   color: #f0f2f5;
   overflow-x: hidden;
 }
+
+
 .top-button.right {
   left: auto;
   right: 20px;
@@ -579,3 +581,5 @@ model-viewer#avatar-model {
   border-radius: 12px;
   pointer-events: none; 
 }
+
+
