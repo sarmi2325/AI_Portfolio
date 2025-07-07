@@ -36,6 +36,16 @@ def preprocess_user_input(user_msg):
     user_msg = re.sub(r'\bsarmitha\b', 'you', user_msg, flags=re.IGNORECASE)
     return user_msg
 
+
+
+def is_resume_related(user_msg):
+    keywords = [
+        "resume", "project", "experience", "skills", "education",
+        "background", "career", "contact", "publication", "internship",
+        "achievement", "bio", "about", "degree", "qualification","work experience"
+    ]
+    return any(kw in user_msg.lower() for kw in keywords)
+
 @app.route('/')
 def home():
     like = Like.query.first()
@@ -49,10 +59,15 @@ def chat():
     if not user_msg:
         return jsonify({"response": "❗ Please enter a valid message."})
 
-    context_chunks = retrieve(user_msg)[:10]
-    context = "\n".join(context_chunks)
+    
+    # Only retrieve if the query is resume-related
+    if is_resume_related(user_msg):
+        context_chunks = retrieve(user_msg)[:10]
+        context = "\n".join(context_chunks)
+    else:
+        context = ""  # No retrieval context for non-resume queries
 
-
+    # Prompt selection logic (always in first person)
     if "project" in user_msg:
         prompt = get_project_prompt(context, user_msg)
     elif "skill" in user_msg:
@@ -62,8 +77,8 @@ def chat():
     elif "about" in user_msg or "you" in user_msg:
         prompt = get_about_prompt(context, user_msg)
     else:
-        prompt = context + f"\n\nUser Question: {user_msg}\n\nRespond clearly and concisely."
-   
+        # Use only system prompt and user message for non-resume queries
+        prompt = context + f"\n\nUser Question: {user_msg}\n\nRespond clearly and concisely as Sarmitha, in first person, with warmth."
 
     answer = ask_claude(prompt)
     return jsonify({"response": answer})
@@ -75,7 +90,7 @@ def ask_claude(prompt):
         "content-type": "application/json"
     }
     data = {
-        "model": "claude-3-haiku-20240307",  # or another Claude model
+        "model": "claude-3-5-haiku-20241022", 
         "max_tokens": 1024,
         "messages": [
             {"role": "user", "content": prompt}
@@ -109,8 +124,6 @@ def like():
 def like_status():
     like = Like.query.first()
     return jsonify({'count': like.count})
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
