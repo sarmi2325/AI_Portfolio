@@ -18,6 +18,9 @@
    class="top-button" id="hireMeBtn">
   Hire Me
 </a>
+<button class="top-button right" id="like-btn">
+  Like <span id="like-count">{{ like_count }}</span>
+</button>
 
 
   <div class="main-area">
@@ -157,6 +160,7 @@
       <a href="https://linear-algebra-visual-toolkit-pnrigscsyfkeaxxrkfhvgv.streamlit.app/" target="_blank">Demo</a>
     </div>
   </div>
+
   
   <script>
     window.addEventListener('DOMContentLoaded', () => {
@@ -670,5 +674,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
   });
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const likeBtn = document.getElementById('like-btn');
+    const likeCountSpan = document.getElementById('like-count');
+
+    // Fetch and display the current like count on page load
+    fetch('/like_status')
+      .then(res => res.json())
+      .then(data => {
+          likeCountSpan.textContent = data.count;
+      });
+
+    // Handle like button click
+    likeBtn.addEventListener('click', function() {
+        fetch('/like', { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+              likeCountSpan.textContent = data.count;
+              // Add a "liked" visual feedback
+              likeBtn.classList.add('liked');
+              // Change button content to show a pink heart or thumbs-up
+              likeBtn.innerHTML = `🤍 Liked <span id="like-count">${data.count}</span>`;
+          });
+    });
+});
+
   </script>
-  
