@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  
   <a href="mailto:sarmi8822@gmail.com?subject=Hiring%20Inquiry&body=Hello%20Sarmitha,%0D%0AI%20am%20interested%20in%20working%20with%20you." 
    class="top-button" id="hireMeBtn">
   Hire Me
@@ -187,7 +188,7 @@
     // Typewriter intro
     window.addEventListener('DOMContentLoaded', () => {
     const lines = [
-      `Hi, I'm <span style="color:#3b82f6;font-weight:600;">Sarmitha</span>.`,
+      `Hi, I'm <span style="color:#3b82f6;font-weight:600;">Sarmitha</span>`,
       `Wanna read my Resume?`,
       `Talk to it!`
     ];
@@ -235,16 +236,20 @@
   });
   });
   
-    function hideIntro() {
-      document.getElementById("intro").style.display = "none";
-      document.getElementById("chatbox").style.display = "flex";
+  function hideIntro() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("chatbox").style.display = "flex";
 
-      const watermark = document.getElementById("watermark");
-      const hireBtn = document.getElementById("hireMeBtn");
-      if (watermark) watermark.style.display = "none";
-      if (hireBtn) hireBtn.style.display = "none";
+  const watermark = document.getElementById("watermark");
+  const hireBtn = document.getElementById("hireMeBtn");
+  const likeBtn = document.getElementById("like-btn"); // updated ID
 
-    }
+  if (watermark) watermark.style.display = "none";
+  if (hireBtn) hireBtn.style.display = "none";
+  if (likeBtn) likeBtn.style.display = "none"; // hide like button
+}
+
+
   
     function appendChatBubble(sender, msg) {
       const chat = document.getElementById("chat");
@@ -660,20 +665,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatbox = document.getElementById("chatbox");
     const watermark = document.getElementById("watermark");
     const hireBtn = document.getElementById("hireMeBtn");
+    const likeBtn = document.getElementById("like-btn"); // Add this line
 
     if (intro) intro.style.display = "block";
     if (chatbox) chatbox.style.display = "none";
     if (watermark) watermark.style.display = "block";
     if (hireBtn) hireBtn.style.display = "inline-block"; // Will be shown by checkAndShowHireMe()
+    if (likeBtn) likeBtn.style.display = "inline-block"; // Add this line to show the like button
 
     // Hide all modals
     document.querySelectorAll('.modal').forEach(modal => {
       modal.style.display = "none";
     });
     clearChat();
-    
   });
 });
+
 
 document.addEventListener("DOMContentLoaded", function() {
     const likeBtn = document.getElementById('like-btn');
