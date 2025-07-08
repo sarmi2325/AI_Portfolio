@@ -3,6 +3,7 @@ Flask
 requests
 python-dotenv
 scikit-learn
-Flask-SQLAlchemy
+langdetect
+deep-translator
 rank_bm25
 
