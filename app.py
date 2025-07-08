@@ -133,7 +133,7 @@ def chat():
         system_prompt = get_personal_prompt("", user_msg)
         session_context["last_topic"] = "personal"
     elif is_thanglish(user_msg):
-        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with very less Tamil flavor (Thanglish).mostly reply in english"
+        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with less Tamil flavor (Thanglish).mostly reply in english"
         session_context["last_topic"] = "about"
     elif lang in ["ta", "hi", "fr", "es"]:
         system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in the same language."
