@@ -563,21 +563,15 @@ else if (key === "tell me about you") {
     function checkAndShowHireMe() {
   const hireBtn = document.getElementById("hireMeBtn");
   const intro = document.getElementById("intro");
-  const modelUrl = "static/m.glb";
 
   if (!hireBtn || !intro) return;
 
-  fetch(modelUrl, { method: "HEAD" })
-    .then(res => {
-      if (res.ok && intro.style.display !== "none") {
-        hireBtn.style.display = "inline-block";
-      } else {
-        hireBtn.style.display = "none";
-      }
-    })
-    .catch(() => {
-      hireBtn.style.display = "none";
-    });
+  // Show "Hire Me" button only if intro section is visible
+  if (intro.style.display !== "none") {
+    hireBtn.style.display = "inline-block";
+  } else {
+    hireBtn.style.display = "none";
+  }
 }
 
 // Home Button Functionality
