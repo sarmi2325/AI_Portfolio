@@ -287,13 +287,13 @@ body {
 
 .project-card-bw {
   background: #fff;
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   min-width: 260px;
   max-width: 280px;
   display: flex;
   align-items: center;
-  padding: 20px;
+  padding: 10px;
   border: 2px solid #18191a;
   scroll-snap-align: start;
   cursor: pointer;
@@ -555,6 +555,8 @@ body {
   .contact-icons {
     gap: 16px;
   }
+ 
+
 }
 /* === RESPONSIVE STYLES === */
 
@@ -604,31 +606,8 @@ body {
     width: 160px;
     height: 200px;
   }
-  .projects-scroll-row {
-    flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
-    gap: 16px;
-    scroll-snap-type: none;
-  }
+ 
 
-  .project-card-bw {
-    width: 100%;
-    max-width: 100%;
-    flex-direction: row;
-  }
-
-  .project-card-icon-bw {
-    margin-right: 14px;
-  }
-
-  .project-card-content-bw h4 {
-    font-size: 1rem;
-  }
-
-  .project-card-content-bw p {
-    font-size: 0.9rem;
-  }
   .skills-section {
     gap: 18px;
   }
@@ -680,31 +659,7 @@ body {
   .profile-intro {
     padding-left: 0;
   }
-  .projects-scroll-row {
-    flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
-    gap: 16px;
-    scroll-snap-type: none;
-  }
-
-  .project-card-bw {
-    width: 100%;
-    max-width: 100%;
-    flex-direction: row;
-  }
-
-  .project-card-icon-bw {
-    margin-right: 14px;
-  }
-
-  .project-card-content-bw h4 {
-    font-size: 1rem;
-  }
-
-  .project-card-content-bw p {
-    font-size: 0.9rem;
-  }
+  
 }
 
 /* Small Devices (576px–767.98px) */
@@ -748,19 +703,7 @@ body {
   .profile-intro {
     padding-left: 0;
   }
-  .projects-scroll-row {
-    flex-direction: column;
-    align-items: center;
-    overflow-x: unset;
-    overflow-y: visible;
-    gap: 16px;
-  }
 
-  .project-card-bw {
-    min-width: auto;
-    max-width: 95%;
-    width: 95%;
-  }
 }
 
 /* Medium Devices (768px–991.98px) */
@@ -841,31 +784,7 @@ body {
   .profile-intro {
     padding-left: 0;
   }
-  .projects-scroll-row {
-    flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
-    gap: 16px;
-    scroll-snap-type: none;
-  }
-
-  .project-card-bw {
-    width: 100%;
-    max-width: 100%;
-    flex-direction: row;
-  }
-
-  .project-card-icon-bw {
-    margin-right: 14px;
-  }
-
-  .project-card-content-bw h4 {
-    font-size: 1rem;
-  }
-
-  .project-card-content-bw p {
-    font-size: 0.9rem;
-  }
+  
 }
 
 
@@ -887,144 +806,3 @@ body {
   filter: drop-shadow(0 0 20px rgba(0, 102, 255, 0.3));
   transition: 0.3s;
 }
-
-
-
-  .typewriter-text {
-    font-size: 24px;
-  }
-
-  #sarmi-lottie {
-    width: 260px;
-    height: 260px;
-  }
-  .chat-container {
-    max-width: 500px;
-    height: 550px;
-  }
-  .modal-links {
-    flex-direction: row;
-    align-items: stretch;
-  }
-
-  .modal-btn {
-    width: 100%;
-    font-size: 1rem;
-  }
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px;
-  }
-
-  .profile-photo {
-    margin-bottom: 20px;
-  }
-
-  .profile-intro {
-    padding-left: 0;
-  }
-}
-
-/* Medium Devices (768px–991.98px) */
-@media (min-width: 768px) and (max-width: 991.98px) {
-  .main-area {
-    flex-direction: row;
-    justify-content: center;
-  }
-  .typewriter-container {
-    margin-top: 80px; 
-  }
-
-  .typewriter-text {
-    font-size: 30px;
-  }
-
-  #sarmi-lottie {
-    width: 300px;
-    height: 300px;
-    margin-top: 20px; 
-  }
-  .chat-container {
-    max-width: 700px;
-    height: 500px;
-  }
-  .modal-content {
-    width: 95%;
-    padding: 18px 16px;
-    font-size: 0.95rem;
-  }
-
-  .modal-content h2,
-  .modal-content h3 {
-    font-size: 0.7rem;
-  }
-
-  .modal-content ul li {
-    font-size: 0.95rem;
-    margin-bottom: 6px;
-  }
-
-  .modal-links {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 15px;
-    justify-content: flex-start;
-  }
-  
-  .modal-btn {
-    background-color: #18191a;
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-block;
-    transition: all 0.25s ease;
-    border: none;
-    font-size: 15px;
-  }
-  
-  .modal-btn:hover {
-    background-color: #fff;
-    color: #18191a;
-    border: 1.5px solid #18191a;
-  }
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px;
-  }
-
-  .profile-photo {
-    margin-bottom: 20px;
-  }
-
-  .profile-intro {
-    padding-left: 0;
-  }
-}
-
-
-#sarmi-image {
-  animation: float 3s ease-in-out infinite;
-  margin-top: 40px; 
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-#sarmi-image:hover {
-  filter: drop-shadow(0 0 20px rgba(0, 102, 255, 0.3));
-  transition: 0.3s;
-}
-
-
-
