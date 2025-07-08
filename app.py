@@ -1,132 +1,178 @@
 from flask import Flask, request, render_template, jsonify
-from model import db, Like
+
 from rag import retrieve
 from system_prompts import (
+    SYSTEM_PROMPT,
     get_about_prompt,
     get_skills_prompt,
     get_project_prompt,
-    get_contact_prompt
+    get_contact_prompt,
+    get_personal_prompt
 )
-import re
 import os
+import re
 import requests
 from dotenv import load_dotenv
+from langdetect import detect
 
-# Load API Key
+# Load Claude API Key
 load_dotenv()
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-
 if not CLAUDE_API_KEY:
-    raise ValueError("❌ Missing Claude API Key. Set CLAUDE_API_KEY in your .env file.")
+    raise ValueError("Missing Claude API Key. Set CLAUDE_API_KEY in .env file")
 
+# Flask Setup
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///likes.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
 
-with app.app_context():
-    db.create_all()
-    if not Like.query.first():
-        db.session.add(Like(count=0))
-        db.session.commit()
+# Session context
+chat_history = []
+session_context = {
+    "last_topic": None,
+    "last_response": None,
+    "last_response_type": None,
+}
 
-def preprocess_user_input(user_msg):
-    user_msg = re.sub(r'\bher\b', 'you', user_msg, flags=re.IGNORECASE)
-    user_msg = re.sub(r'\bshe\b', 'you', user_msg, flags=re.IGNORECASE)
-    user_msg = re.sub(r'\bsarmitha\b', 'you', user_msg, flags=re.IGNORECASE)
-    return user_msg
+# Keywords
+RESUME_KEYWORDS = [
+    "resume", "cv", "portfolio", "profile", "about", "bio", "background", "introduction", "summary",
+    "education", "degree", "college", "university", "school", "academic", "graduation", "cgpa", "marks", "percentage",
+    "qualification", "branch", "department", "b.e", "engineering", "instrumentation", "specialization",
+    "skills", "skillset", "expertise", "tools", "frameworks", "technologies", "language", "python", "numpy", "keras", "scikit", "shap",
+    "project", "projects", "capstone", "final year", "churn", "pneumonia", "linear algebra", "visual toolkit",
+    "certification", "certifications", "courses", "nptel", "coursera", "hackerrank", "infosys", "silver", "ai primer",
+    "publication", "publications", "conference", "conferences", "paper", "published", "scopus", "icaiss",
+    "award", "awards", "achievement", "achievements", "honor", "honours", "trophy", "hackathon",
+    "internship", "experience", "work", "training", "job", "role",
+    "contact", "email", "linkedin", "github", "reach", "connect", "network", "hire", "collaborate", "collaboration",
+    "career", "objective", "goal", "mission", "aspiration",
+    "languages spoken", "english", "tamil", "communication", "soft skills",
+    "yourself", "tell me", "describe", "who are you", "journey", "story"
+]
+PERSONAL_KEYWORDS = [
+    "father", "mother", "dad", "mom", "parents", "family", "sister", "brother", "siblings",
+    "pet", "dog", "rythm", "patti", "thatha", "grandmother", "grandfather",
+    "cooking", "cook", "kitchen", "food", "recipe",
+    "drawing", "painting", "sketching", "craft", "craftwork", "hobby", "hobbies", "interests", "interest",
+    "shinchan", "anime", "drama", "tv", "movie", "cinema", "netflix", "watch",
+    "personality", "fun", "relax", "free time", "what do you do", "how are you", "what are you doing",
+    "born", "age", "location", "place", "from where"
+]
+THANGLISH_HINTS = [
+    "enna", "epdi", "epdi iruka", "iruka", "sapudra", "sapta", "pasanga", "poda", "sollu", "velai", "padikka", "padichinga","unnaku"
+    "vera", "pesa", "theriyuma", "solra", "eppadi", "yenga", "enaku", "ungalukku", "neenga", "thambi", "akka", "sari",
+    "romba", "siriya", "ennoda", "periya", "machan", "machi", "veetla", "kadha", "kadhal", "kandippa", "aama", "illa",
+    "naan", "nee", "avan", "ava", "ivanga", "inga", "unga", "enga", "ethuku", "edhuku", "paathu", "seriya", "enna panra", "sathiyama"
+]
+FOLLOWUP_HINTS = ["that", "this", "one", "more", "continue", "yes", "tell", "explain",'yes ofcourse',"i do","think","ok","okay"]
 
+def preprocess(text):
+    return re.sub(r'\b(she|her|sarmitha)\b', 'you', text, flags=re.IGNORECASE)
 
+def is_thanglish(text):
+    return any(word in text.lower() for word in THANGLISH_HINTS)
 
-def is_resume_related(user_msg):
-    keywords = [
-        "resume", "project", "experience", "skills", "education",
-        "background", "career", "contact", "publication", "internship",
-        "achievement", "bio", "about", "degree", "qualification","work experience"
-    ]
-    return any(kw in user_msg.lower() for kw in keywords)
+def is_resume_related(text):
+    return any(word in text.lower() for word in RESUME_KEYWORDS)
 
-@app.route('/')
+def is_personal_related(text):
+    return any(word in text.lower() for word in PERSONAL_KEYWORDS)
+
+def is_followup(text):
+    return any(word in text.lower() for word in FOLLOWUP_HINTS)
+
+def detect_language(text):
+    try:
+        return detect(text)
+    except:
+        return "unknown"
+
+@app.route("/")
 def home():
-    like = Like.query.first()
-    return render_template("chatbot.html", like_count=like.count)
+    
+    return render_template("home.html")
 
-@app.route('/chat', methods=["POST"])
+@app.route('/home')
+def home1():
+    return render_template('home.html')
+
+
+@app.route("/chat", methods=["POST"])
 def chat():
-    raw_user_msg = request.json.get("message", "").strip()
-    user_msg = preprocess_user_input(raw_user_msg.lower())
-
-    if not user_msg:
+    user_raw = request.json.get("message", "").strip()
+    if not user_raw:
         return jsonify({"response": "❗ Please enter a valid message."})
 
-    
-    # Only retrieve if the query is resume-related
-    if is_resume_related(user_msg):
-        context_chunks = retrieve(user_msg)[:10]
-        context = "\n".join(context_chunks)
-    else:
-        context = ""  # No retrieval context for non-resume queries
+    lang = detect_language(user_raw)
+    user_msg = preprocess(user_raw)
 
-    # Prompt selection logic (always in first person)
-    if "project" in user_msg:
-        prompt = get_project_prompt(context, user_msg)
-    elif "skill" in user_msg:
-        prompt = get_skills_prompt(context, user_msg)
-    elif "contact" in user_msg:
-        prompt = get_contact_prompt(context, user_msg)
-    elif "about" in user_msg or "you" in user_msg:
-        prompt = get_about_prompt(context, user_msg)
+    if is_followup(user_msg) and session_context["last_response"]:
+        system_prompt = (
+            f"{SYSTEM_PROMPT['content']}\n\n"
+            f"Previous Response:\n{session_context['last_response']}\n\n"
+            f"Follow-up User Question: {user_msg}\n"
+            f"Give a relevant follow-up answer using my previous reply."
+        )
+    elif is_resume_related(user_msg):
+        context = "\n".join(retrieve(user_msg, top_k=6))
+        if "project" in user_msg:
+            system_prompt = get_project_prompt(context, user_msg)
+            session_context["last_topic"] = "project"
+        elif "skill" in user_msg:
+            system_prompt = get_skills_prompt(context, user_msg)
+            session_context["last_topic"] = "skills"
+        elif "contact" in user_msg:
+            system_prompt = get_contact_prompt(context, user_msg)
+            session_context["last_topic"] = "contact"
+        elif "about" in user_msg or "yourself" in user_msg:
+            system_prompt = get_about_prompt(context, user_msg)
+            session_context["last_topic"] = "about"
+        else:
+            system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}"
+            session_context["last_topic"] = "general"
+    elif is_personal_related(user_msg):
+        system_prompt = get_personal_prompt("", user_msg)
+        session_context["last_topic"] = "personal"
+    elif is_thanglish(user_msg):
+        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with very less Tamil flavor (Thanglish).mostly reply in english"
+        session_context["last_topic"] = "about"
+    elif lang in ["ta", "hi", "fr", "es"]:
+        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in the same language."
+        session_context["last_topic"] = "about"
+    elif any(greet in user_msg.lower() for greet in ["hi", "hello", "hey", "vanakkam"]):
+        return jsonify({"response": "Hi! 😊 I'm <b>Sarmitha</b> — an AI/ML enthusiast from Tamil Nadu.<br>Wanna explore my projects, skills, or just chat about tech? 🚀"})
     else:
-        # Use only system prompt and user message for non-resume queries
-        prompt = context + f"\n\nUser Question: {user_msg}\n\nRespond clearly and concisely as Sarmitha, in first person, with warmth."
+        return jsonify({"response": "I'm not sure what you mean. 😊 Try asking about my projects, skills, or background."})
 
-    answer = ask_claude(prompt)
+    chat_history.append({"role": "user", "content": user_msg})
+    answer = ask_claude(chat_history + [{"role": "user", "content": system_prompt}])
+    chat_history.append({"role": "assistant", "content": answer})
+    session_context["last_response"] = answer
+
     return jsonify({"response": answer})
 
-def ask_claude(prompt):
+def ask_claude(messages):
     headers = {
         "x-api-key": CLAUDE_API_KEY,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json"
     }
+    formatted = [
+        {"role": m["role"], "content": [{"type": "text", "text": m["content"]}]} for m in messages[-10:]
+    ]
     data = {
-        "model": "claude-3-5-haiku-20241022", 
+        "model": "claude-3-haiku-20240307",
         "max_tokens": 1024,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ]
+        "system": SYSTEM_PROMPT["content"],
+        "messages": formatted
     }
     try:
         res = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
-        if res.status_code != 200:
-            print("❌ Claude API Error:", res.status_code, res.text)
-            return "⚠️ Claude API error."
-        # Parse response safely
         result = res.json()
-        if "content" in result and isinstance(result["content"], list) and result["content"]:
-            answer = result["content"][0].get("text", "").replace("\n", " ")
-            return answer if answer else "⚠️ No answer returned from Claude."
-        else:
-            print("❌ Claude API: Unexpected response format:", result)
-            return "⚠️ Claude API: Unexpected response format."
+        return result['content'][0]['text'] if 'content' in result else "⚠️ Claude Error"
     except Exception as e:
-        print("❌ Claude Exception:", e)
-        return "⚠️ Connection failed."
+        print("Claude Exception:", e)
+        return "Cannot get answer right now, try again"
 
-@app.route('/like', methods=['POST'])
-def like():
-    like = Like.query.first()
-    like.count += 1
-    db.session.commit()
-    return jsonify({'count': like.count})
-
-@app.route('/like_status', methods=['GET'])
-def like_status():
-    like = Like.query.first()
-    return jsonify({'count': like.count})
-
-if __name__ == "__main__":
-    app.run(debug=True, threaded=True)
 
 
 
