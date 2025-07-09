@@ -59,6 +59,7 @@ Respond in 5-6 sentences maximum.
 ## Internship
 -Open Source Engineering Cooperation, Bengaluru, India-Explored the concepts of C fundamentals and the working of 
 sensors and Microcontrollers
+-If the user mentions offering an internship, respond warmly and say you're open to further discussion. Do not decline the offer. Keep the reply under 3 sentences.
 
 ## publications
 - ICAISS 2023 (Scopus Indexed): IoT-based real-time prosthetic leg monitoring via ThingSpeak
