@@ -8,6 +8,8 @@ from system_prompts import (
     get_project_prompt,
     get_contact_prompt,
     get_personal_prompt
+    detect_language,
+    translate_to_english,
 )
 import os
 import re
@@ -102,9 +104,13 @@ def chat():
     if not user_raw:
         return jsonify({"response": "❗ Please enter a valid message."})
 
-    lang = detect_language(user_raw)
-    user_msg = preprocess(user_raw)
+    # Detect language
+    user_lang = detect_language(user_raw)
+    # Translate to English for Claude
+    user_msg_en = translate_to_english(user_raw)
+    user_msg = preprocess(user_msg_en)
 
+    # Build system prompt as usual
     if is_followup(user_msg) and session_context["last_response"]:
         system_prompt = (
             f"{SYSTEM_PROMPT['content']}\n\n"
@@ -132,12 +138,6 @@ def chat():
     elif is_personal_related(user_msg):
         system_prompt = get_personal_prompt("", user_msg)
         session_context["last_topic"] = "personal"
-    elif is_thanglish(user_msg):
-        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with fewer Tamil flavor (Thanglish).mostly reply in english"
-        session_context["last_topic"] = "about"
-    elif lang in ["ta", "hi", "fr", "es"]:
-        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in the same language."
-        session_context["last_topic"] = "about"
     elif any(greet in user_msg.lower() for greet in ["hi", "hello", "hey", "vanakkam"]):
         return jsonify({"response": "Hi! 😊 I'm <b>Sarmitha</b> — an AI/ML enthusiast from Tamil Nadu.<br>Wanna explore my projects, skills, or just chat about tech? 🚀"})
     else:
@@ -147,6 +147,12 @@ def chat():
     answer = ask_claude(chat_history + [{"role": "user", "content": system_prompt}])
     chat_history.append({"role": "assistant", "content": answer})
     session_context["last_response"] = answer
+
+    # If the user's language was not English, add a flavor note in English
+    if user_lang != "en":
+        # Optionally, you can use a mapping to show the language name (e.g., 'hi'->'Hindi')
+        lang_note = f"<br><i>(By the way, I noticed you wrote in {user_lang.upper()}. I replied in English for clarity!)</i>"
+        answer = answer + lang_note
 
     return jsonify({"response": answer})
 
