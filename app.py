@@ -61,6 +61,7 @@ def detect_intent_with_claude(user_msg):
         res = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
         result = res.json()
         category = result['content'][0]['text'].strip().lower()
+        print("Detected intent:", category)  # Debug
         return category
     except Exception as e:
         print("Claude Intent Exception:", e)
@@ -84,6 +85,10 @@ def chat():
     user_lang = detect_language(user_raw)
     user_msg_en = translate_to_english(user_raw)
     user_msg = preprocess(user_msg_en)
+
+    print("User raw:", user_raw)
+    print("Detected language:", user_lang)
+    print("Translated message:", user_msg_en)
 
     # Use Claude to detect intent
     intent = detect_intent_with_claude(user_msg)
@@ -156,3 +161,5 @@ def ask_claude(messages):
     except Exception as e:
         print("Claude Exception:", e)
         return "Cannot get answer right now, try again"
+
+
