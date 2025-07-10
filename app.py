@@ -16,12 +16,16 @@ import re
 import requests
 from dotenv import load_dotenv
 from langdetect import detect
+import joblib
 
 # Load Claude API Key
 load_dotenv()
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 if not CLAUDE_API_KEY:
     raise ValueError("Missing Claude API Key. Set CLAUDE_API_KEY in .env file")
+
+# Load your trained SVM intent classifier
+intent_model = joblib.load("best_intent_classifier.joblib")
 
 # Flask Setup
 app = Flask(__name__)
@@ -34,59 +38,8 @@ session_context = {
     "last_response_type": None,
 }
 
-# Keywords
-RESUME_KEYWORDS = [
-    "resume", "cv", "portfolio", "profile", "about", "bio", "background", "introduction", "summary",
-    "education", "degree", "college", "university", "school", "academic", "graduation", "cgpa", "marks", "percentage",
-    "qualification", "branch", "department", "b.e", "engineering", "instrumentation", "specialization",
-    "skills", "skillset", "expertise", "tools", "frameworks", "technologies", "language", "python", "numpy", "keras", "scikit", "shap",
-    "project", "projects", "capstone", "final year", "churn", "pneumonia", "linear algebra", "visual toolkit",
-    "certification", "certifications", "courses", "nptel", "coursera", "hackerrank", "infosys", "silver", "ai primer",
-    "publication", "publications", "conference", "conferences", "paper", "published", "scopus", "icaiss",
-    "award", "awards", "achievement", "achievements", "honor", "honours", "trophy", "hackathon",
-    "internship", "experience", "work", "training", "job", "role",
-    "contact", "email", "linkedin", "github", "reach", "connect", "network", "hire", "collaborate", "collaboration",
-    "career", "objective", "goal", "mission", "aspiration",
-    "languages spoken", "english", "tamil", "communication", "soft skills",
-    "yourself", "tell me", "describe", "who are you", "journey", "story"
-]
-PERSONAL_KEYWORDS = [
-    "father", "mother", "dad", "mom", "parents", "family", "sister", "brother", "siblings",
-    "pet", "dog", "rythm", "patti", "thatha", "grandmother", "grandfather",
-    "cooking", "cook", "kitchen", "food", "recipe",
-    "drawing", "painting", "sketching", "craft", "craftwork", "hobby", "hobbies", "interests", "interest",
-    "shinchan", "anime", "drama", "tv", "movie", "cinema", "netflix", "watch",
-    "personality", "fun", "relax", "free time", "what do you do", "how are you", "what are you doing",
-    "born", "age", "location", "place", "from where"
-]
-THANGLISH_HINTS = [
-    "enna", "epdi", "epdi iruka", "iruka", "sapudra", "sapta", "pasanga", "poda", "sollu", "velai", "padikka", "padichinga","unnaku",
-    "vera", "pesa", "theriyuma", "solra", "eppadi", "yenga", "enaku", "ungalukku", "neenga", "thambi", "akka", "sari",
-    "romba", "siriya", "ennoda", "periya", "machan", "machi", "veetla", "kadha", "kadhal", "kandippa", "aama", "illa",
-    "naan", "nee", "avan", "ava", "ivanga", "inga", "unga", "enga", "ethuku", "edhuku", "paathu", "seriya", "enna panra", "sathiyama"
-]
-FOLLOWUP_HINTS = ["that", "this", "one", "more", "continue", "yes", "tell", "explain",'yes ofcourse',"i do","think","ok","okay"]
-
 def preprocess(text):
     return re.sub(r'\b(she|her|sarmitha)\b', 'you', text, flags=re.IGNORECASE)
-
-def is_thanglish(text):
-    return any(word in text.lower() for word in THANGLISH_HINTS)
-
-def is_resume_related(text):
-    return any(word in text.lower() for word in RESUME_KEYWORDS)
-
-def is_personal_related(text):
-    return any(word in text.lower() for word in PERSONAL_KEYWORDS)
-
-def is_followup(text):
-    return any(word in text.lower() for word in FOLLOWUP_HINTS)
-
-def detect_language(text):
-    try:
-        return detect(text)
-    except:
-        return "unknown"
 
 @app.route("/")
 def home():
@@ -102,7 +55,7 @@ def chat():
     if not user_raw:
         return jsonify({"response": "❗ Please enter a valid message."})
 
-    # Always translate to English first!
+    # Detect language and translate to English
     user_lang = detect_language(user_raw)
     user_msg_en = translate_to_english(user_raw)
     user_msg = preprocess(user_msg_en)
@@ -111,40 +64,31 @@ def chat():
     print("Detected language:", user_lang)
     print("Translated message:", user_msg_en)
 
-    if is_followup(user_msg) and session_context["last_response"]:
-        system_prompt = (
-            f"{SYSTEM_PROMPT['content']}\n\n"
-            f"Previous Response:\n{session_context['last_response']}\n\n"
-            f"Follow-up User Question: {user_msg}\n"
-            f"Give a relevant follow-up answer using my previous reply."
-        )
-    elif is_resume_related(user_msg):
+    # Predict intent using SVM model
+    intent = intent_model.predict([user_msg])[0]
+    print("Predicted intent:", intent)
+
+    # Route based on predicted intent
+    if intent == "resume":
         context = "\n".join(retrieve(user_msg, top_k=6))
-        if "project" in user_msg:
-            system_prompt = get_project_prompt(context, user_msg)
-            session_context["last_topic"] = "project"
-        elif "skill" in user_msg:
-            system_prompt = get_skills_prompt(context, user_msg)
-            session_context["last_topic"] = "skills"
-        elif "contact" in user_msg:
-            system_prompt = get_contact_prompt(context, user_msg)
-            session_context["last_topic"] = "contact"
-        elif "about" in user_msg or "yourself" in user_msg:
-            system_prompt = get_about_prompt(context, user_msg)
-            session_context["last_topic"] = "about"
-        else:
-            system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}"
-            session_context["last_topic"] = "general"
-    elif is_personal_related(user_msg):
+        system_prompt = get_about_prompt(context, user_msg)
+        session_context["last_topic"] = "about"
+    elif intent == "project":
+        context = "\n".join(retrieve(user_msg, top_k=6))
+        system_prompt = get_project_prompt(context, user_msg)
+        session_context["last_topic"] = "project"
+    elif intent == "skills":
+        context = "\n".join(retrieve(user_msg, top_k=6))
+        system_prompt = get_skills_prompt(context, user_msg)
+        session_context["last_topic"] = "skills"
+    elif intent == "personal":
         system_prompt = get_personal_prompt("", user_msg)
         session_context["last_topic"] = "personal"
-    elif is_thanglish(user_msg):
-        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with fewer Tamil flavor (Thanglish). Mostly reply in English."
-        session_context["last_topic"] = "about"
-    elif user_lang in ["ta", "hi", "fr", "es"]:
-        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in the same language."
-        session_context["last_topic"] = "about"
-    elif any(greet in user_msg.lower() for greet in ["hi", "hello", "hey", "vanakkam"]):
+    elif intent == "contact":
+        context = "\n".join(retrieve(user_msg, top_k=6))
+        system_prompt = get_contact_prompt(context, user_msg)
+        session_context["last_topic"] = "contact"
+    elif intent == "greeting":
         return jsonify({"response": "Hi! 😊 I'm <b>Sarmitha</b> — an AI/ML enthusiast from Tamil Nadu.<br>Wanna explore my projects, skills, or just chat about tech? 🚀"})
     else:
         return jsonify({"response": "I'm not sure what you mean. 😊 Try asking about my projects, skills, or background."})
