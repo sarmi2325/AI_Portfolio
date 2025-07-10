@@ -110,6 +110,7 @@ sensors and Microcontrollers
 
 def detect_language(text):
     try:
+        # Returns language code, e.g., 'en', 'hi', 'ta', etc.
         return GoogleTranslator(source='auto', target='en').detect(text)[0]
     except:
         return 'en'
