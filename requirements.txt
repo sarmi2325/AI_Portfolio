@@ -6,4 +6,5 @@ scikit-learn
 langdetect
 deep-translator
 rank_bm25
+joblib
 
