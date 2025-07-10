@@ -32,7 +32,7 @@ _⚠️ Note: The demo may take up to a minute to load on first visit due to fre
 
 ## ✨ Features
 
-- **Keyword Search**:  
+- **Indent classifier**:  
   Uses BM25 (via `bmrank`) to fetch the most relevant resume chunks for each query.
 
 - **System Prompt Grounding**:  
@@ -40,9 +40,6 @@ _⚠️ Note: The demo may take up to a minute to load on first visit due to fre
 
 - **Hybrid RAG Architecture**:  
   Balances efficient keyword-based retrieval with robust fallback system prompt grounding. Ready for upgrades to semantic or hybrid search.
-
-- **Multilingual Support**:  
-  Detects and translates user queries using `langdetect` and `deep-translator`, making the bot more accessible.
 
 ---
 
