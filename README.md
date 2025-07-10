@@ -1,11 +1,11 @@
-# 📄 Retrieval-Augmented Resume Chatbot
+# AI Resume Portfolio
 
 A **modular chatbot** that answers questions about my resume using keyword-based retrieval (BM25/bmrank) and a comprehensive system prompt for context and fallback.  
 Deployed with **Python, Flask, and Gunicorn** on Render.
 
 ## 📸 Screenshot
 
-![Screenshot](./Screenshots/screenshot-1.png)
+![Screenshot](./Screenshots/Screenshot-1.png)
 
 ---
 
