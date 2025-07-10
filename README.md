@@ -5,7 +5,7 @@ Deployed with **Python, Flask, and Gunicorn** on Render.
 
 ## 📸 Screenshot
 
-![Screenshot](./screenshot/Screenshot-1.png)
+![Screenshot](./Screenshots/screenshot-1.png)
 
 ---
 
