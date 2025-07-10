@@ -7,7 +7,9 @@ from system_prompts import (
     get_skills_prompt,
     get_project_prompt,
     get_contact_prompt,
-    get_personal_prompt
+    get_personal_prompt,
+    detect_language,
+    translate_to_english
 )
 import os
 import re
@@ -58,7 +60,7 @@ PERSONAL_KEYWORDS = [
     "born", "age", "location", "place", "from where"
 ]
 THANGLISH_HINTS = [
-    "enna", "epdi", "epdi iruka", "iruka", "sapudra", "sapta", "pasanga", "poda", "sollu", "velai", "padikka", "padichinga","unnaku"
+    "enna", "epdi", "epdi iruka", "iruka", "sapudra", "sapta", "pasanga", "poda", "sollu", "velai", "padikka", "padichinga","unnaku",
     "vera", "pesa", "theriyuma", "solra", "eppadi", "yenga", "enaku", "ungalukku", "neenga", "thambi", "akka", "sari",
     "romba", "siriya", "ennoda", "periya", "machan", "machi", "veetla", "kadha", "kadhal", "kandippa", "aama", "illa",
     "naan", "nee", "avan", "ava", "ivanga", "inga", "unga", "enga", "ethuku", "edhuku", "paathu", "seriya", "enna panra", "sathiyama"
@@ -88,13 +90,11 @@ def detect_language(text):
 
 @app.route("/")
 def home():
-    
     return render_template("home.html")
 
 @app.route('/home')
 def home1():
     return render_template('home.html')
-
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -102,8 +102,14 @@ def chat():
     if not user_raw:
         return jsonify({"response": "❗ Please enter a valid message."})
 
-    lang = detect_language(user_raw)
-    user_msg = preprocess(user_raw)
+    # Always translate to English first!
+    user_lang = detect_language(user_raw)
+    user_msg_en = translate_to_english(user_raw)
+    user_msg = preprocess(user_msg_en)
+
+    print("User raw:", user_raw)
+    print("Detected language:", user_lang)
+    print("Translated message:", user_msg_en)
 
     if is_followup(user_msg) and session_context["last_response"]:
         system_prompt = (
@@ -133,9 +139,9 @@ def chat():
         system_prompt = get_personal_prompt("", user_msg)
         session_context["last_topic"] = "personal"
     elif is_thanglish(user_msg):
-        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with fewer Tamil flavor (Thanglish).mostly reply in english"
+        system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in English with fewer Tamil flavor (Thanglish). Mostly reply in English."
         session_context["last_topic"] = "about"
-    elif lang in ["ta", "hi", "fr", "es"]:
+    elif user_lang in ["ta", "hi", "fr", "es"]:
         system_prompt = SYSTEM_PROMPT['content'] + f"\n\nUser Question: {user_msg}\n\nRespond in the same language."
         session_context["last_topic"] = "about"
     elif any(greet in user_msg.lower() for greet in ["hi", "hello", "hey", "vanakkam"]):
@@ -147,6 +153,11 @@ def chat():
     answer = ask_claude(chat_history + [{"role": "user", "content": system_prompt}])
     chat_history.append({"role": "assistant", "content": answer})
     session_context["last_response"] = answer
+
+    # Add a note if the user's language wasn't English
+    if user_lang != "en":
+        lang_note = f"<br><i>(By the way, I noticed you wrote in {user_lang.upper()}. I replied in English for clarity!)</i>"
+        answer = answer + lang_note
 
     return jsonify({"response": answer})
 
@@ -169,5 +180,10 @@ def ask_claude(messages):
         res = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data)
         result = res.json()
         return result['content'][0]['text'] if 'content' in result else "⚠️ Claude Error"
+    except Exception as e:
+        print("Claude Exception:", e)
+        return "Cannot get answer right now, try again"
+
+
 
 
