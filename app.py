@@ -7,9 +7,9 @@ from system_prompts import (
     get_skills_prompt,
     get_project_prompt,
     get_contact_prompt,
-    get_personal_prompt
+    get_personal_prompt,
     detect_language,
-    translate_to_english,
+    translate_to_english
 )
 import os
 import re
