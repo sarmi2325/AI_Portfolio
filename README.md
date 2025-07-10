@@ -1,6 +1,6 @@
 # AI Resume Portfolio
 
-A **modular chatbot** that answers questions about my resume using keyword-based retrieval (BM25/bmrank) and a comprehensive system prompt for context and fallback.  
+Developed an intent-aware AI resume chatbot that classifies user queries and retrieves relevant resume content using a keyword-based BM25 retriever, ensuring precise and explainable context for each answer. Embedded core career and skills details directly into system prompts to provide fallback grounding and robust response handling, maintaining accuracy even for ambiguous or off-topic queries. Designed a hybrid Retrieval-Augmented Generation (RAG) system that balances efficiency and accuracy—with a clear upgrade path to semantic or embedding-based retrieval—enabling scalable, future-proof conversational AI
 Deployed with **Python, Flask, and Gunicorn** on Render.
 
 ## 📸 Screenshot
