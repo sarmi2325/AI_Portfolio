@@ -43,7 +43,7 @@ Respond in a maximum of 4-5 short lines. Avoid long paragraphs. No extra explana
 
 ## Projects
 <ul>
-  <li><b>AI for Pneumonia Detection</b><br>Built and deployed an ensemble-based deep learning model using CNN, MobileNetV2, EfficientNetB0. Achieved 96% accuracy. Integrated Grad-CAM for explainability. Streamlit deployed.</li>
+  <li><b>AI for Pneumonia Detection</b><br>Built and deployed an ensemble-based deep learning model using distilled MobileNetV2, EfficientNetB0. Achieved 96% accuracy. Integrated Grad-CAM for explainability. Streamlit deployed.</li>
   <li><b>Customer Churn Prediction</b><br>Developed a predictive model using Logistic Regression + LightGBM with SHAP and SMOTE-Tomek. Deployed with interactive Streamlit dashboard.</li>
   <li><b>Linear Algebra Visual Toolkit</b><br>Created interactive visualizations for vectors, matrices, eigenvalues using NumPy, Streamlit, and Matplotlib. Great tool for ML learners.</li>
 </ul>
