@@ -64,24 +64,27 @@
   <div class="modal-content">
     <span class="close" onclick="closeModal('modal-pneumonia')">&times;</span>
     <h2>Pneumonia Detection using AI</h2>
-    <p>Developed an ensemble deep learning system combining Simple CNN, MobileNetV2, and EfficientNetB0 to classify chest X-ray images into NORMAL and PNEUMONIA. Deployed as a Streamlit web application with Grad-CAM visualizations for model explainability.</p>
+    <p>Built a real-time ensemble-based deep learning system for classifying chest X-rays as NORMAL or PNEUMONIA using MobileNetV2 and EfficientNetB0. The app includes Grad-CAM visualizations for transparency and is deployed via Streamlit for diagnostic support.</p>
+    
     <h3>Training Strategy</h3>
     <ul>
-      <li><strong>Simple CNN:</strong> Achieved ~94.2% accuracy with AUC ~0.9848 after tuning.</li>
-      <li><strong>MobileNetV2:</strong> Reached ~95.2% accuracy, AUC ~0.9925 with transfer learning.</li>
-      <li><strong>EfficientNetB0:</strong> Achieved 94.7% accuracy, AUC ~0.9874 using two-phase training.</li>
-      <li><strong>Ensemble:</strong> Weighted averaging of predictions improved confidence.</li>
+      <li><strong>MobileNetV2 (Distilled):</strong> Fine-tuned top 30 layers with augmentation and early stopping. AUC: 0.9918</li>
+      <li><strong>EfficientNetB0:</strong> Fine-tuned top 20 layers with ReduceLROnPlateau. AUC: 0.9874</li>
+      <li><strong>Confidence-Based Ensemble:</strong> Weighted average using prediction confidence for robust output.</li>
     </ul>
+
     <h3>Model Performance</h3>
     <ul>
-      <li><strong>Accuracy:</strong> 96%</li>
-      <li><strong>AUC:</strong> 0.9941</li>
-      <li><strong>Precision:</strong> NORMAL 96%, PNEUMONIA 96%</li>
-      <li><strong>Recall:</strong> NORMAL 95%, PNEUMONIA 97%</li>
-      <li><strong>F1 Score:</strong> NORMAL 95.5%, PNEUMONIA 96.5%</li>
+      <li><strong>Accuracy:</strong> 94%</li>
+      <li><strong>AUC:</strong> 0.9918</li>
+      <li><strong>Precision:</strong> NORMAL 98%, PNEUMONIA 90%</li>
+      <li><strong>Recall:</strong> NORMAL 89%, PNEUMONIA 99%</li>
+      <li><strong>F1 Score:</strong> NORMAL 93.5%, PNEUMONIA 94.5%</li>
     </ul>
+
     <h3>Tech Stack</h3>
-    <p>Python, TensorFlow/Keras, Streamlit, OpenCV, Grad-CAM, NumPy</p>
+    <p>Python, TensorFlow/Keras, Streamlit, Grad-CAM, NumPy, OpenCV</p>
+
     <h3>Links</h3>
     <div class="modal-links">
       <a href="https://github.com/sarmi2325/Pneumonia_detection" target="_blank" class="modal-btn">GitHub</a> 
