@@ -115,7 +115,7 @@ def ask_claude(messages):
         {"role": m["role"], "content": [{"type": "text", "text": m["content"]}]} for m in messages[-10:]
     ]
     data = {
-        "model": "claude-3-haiku-20240307",
+        "model": "claude-3-sonnet-20240229",
         "max_tokens": 1024,
         "system": SYSTEM_PROMPT["content"],
         "messages": formatted
