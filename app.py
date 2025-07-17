@@ -60,14 +60,9 @@ def chat():
     user_msg_en = translate_to_english(user_raw)
     user_msg = preprocess(user_msg_en)
 
-    print("User raw:", user_raw)
-    print("Detected language:", user_lang)
-    print("Translated message:", user_msg_en)
-
     # Predict intent using SVM model
     intent = intent_model.predict([user_msg])[0]
-    print("Predicted intent:", intent)
-
+ 
     # Route based on predicted intent
     if intent == "resume":
         context = "\n".join(retrieve(user_msg, top_k=6))
